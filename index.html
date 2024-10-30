@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition</title>
+</head>
+<body>
+    <h1>Speech Recognition Test</h1>
+    <button onclick="speakWord()">Speak Word</button>
+    <button onclick="listenForWord()">Listen for Word</button>
+    <button onclick="nextWord()">Next Word</button>
+    <p id="status"></p>
+
+    <script>
+        function speakWord() {
+            fetch('/speak_word', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.word) {
+                        document.getElementById('status').textContent = `Speaking: ${data.word}`;
+                    } else if (data.message) {
+                        document.getElementById('status').textContent = data.message;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function listenForWord() {
+            fetch('/listen_for_word', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'correct') {
+                        document.getElementById('status').textContent = `Correct! You said: ${data.spoken_word}`;
+                        nextWord(); // Automatically move to the next word after a correct answer
+                    } else if (data.status === 'incorrect') {
+                        document.getElementById('status').textContent = `Incorrect. You said: ${data.spoken_word}`;
+                    } else if (data.status === 'error') {
+                        document.getElementById('status').textContent = `Error: ${data.message}`;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function nextWord() {
+            fetch('/next_word', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        speakWord(); // Automatically speak the next word
+                        document.getElementById('status').textContent = data.message;
+                    } else {
+                        document.getElementById('status').textContent = data.message;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
